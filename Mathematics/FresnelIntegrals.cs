@@ -1,14 +1,15 @@
 ﻿using System;
 
-namespace ClothoidAndTheOthers.Mathematics
+namespace Clothoid.Mathematics
 {
     // http://en.wikipedia.org/wiki/Fresnel_integral
 
-    // http://www.mpi-hd.mpg.de/astrophysik/HEA/internal/Numerical_Recipes/f6-9.pdf
+    // NUMERICAL RECIPES The Art of Scientific Computing, 
+    // 6.9 Fresnel Integrals, Cosine and Sine Integrals
+    // http://www.aip.de/groups/soe/local/numres/bookfpdf/f6-9.pdf
 
-    static class FresnelIntegrals
+    public static class FresnelIntegrals
     {
-        
         private static readonly double Sqrt2DivPi = Math.Sqrt(2 / Math.PI);
        
         public static double C(double l)
@@ -303,6 +304,5 @@ namespace ClothoidAndTheOthers.Mathematics
             c = c * Math.Sign(xxa);
             s = s * Math.Sign(xxa);
         }
-        
     }
 }

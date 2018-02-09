@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace ClothoidAndTheOthers.Geometry
+namespace Clothoid.Geometry
 {
     public struct Circle
     {
-        public readonly Point Center;
+        public Point Center { get; }
 
         public readonly double Radius;
 
@@ -19,12 +19,9 @@ namespace ClothoidAndTheOthers.Geometry
         {
         }
 
-        public double Length
-        {
-            get { return 2*Math.PI*Math.Abs(Radius); }
-        }
+        public double Length => 2*Math.PI*Math.Abs(Radius);
 
-        public UnitVector GetTagent(Point point)
+        public UnitVector GetTangent(Point point)
         {
             return Radius > 0 
                 ? (point - Center).Normal 
@@ -34,8 +31,8 @@ namespace ClothoidAndTheOthers.Geometry
         public Line GetTangentLine(UnitVector radiusAngle)
         {
             var dir = Radius > 0
-                          ? radiusAngle.Normal
-                          : - radiusAngle.Normal;
+                ? radiusAngle.Normal
+                : -radiusAngle.Normal;
             
             return new Line(Center + radiusAngle * Math.Abs(Radius), dir);
         }
@@ -56,7 +53,7 @@ namespace ClothoidAndTheOthers.Geometry
             
             var shift = -new Vector(Center);
 
-            var l = line.Move(shift);
+            var l = line.Translate(shift);
             
             var r = Radius;
             var r_2 = r*r;
@@ -78,7 +75,7 @@ namespace ClothoidAndTheOthers.Geometry
 
             if (a == 0)
             {
-                var y = (p*b + sqrtD);
+                var y = p*b + sqrtD;
                 var x = Math.Sqrt(r*r - y*y);
 
                 pt1 = new Point(x, y) - shift;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace ClothoidAndTheOthers.Mathematics
+namespace Clothoid.Mathematics
 {
     internal static class Equation
     {
@@ -10,14 +10,14 @@ namespace ClothoidAndTheOthers.Mathematics
         /// <summary>
         /// Finds root of equation "func(x) = 0"
         /// </summary>
-        internal static double SolveSimply(Func func, double start, double startStep, double argumentAccuarcy)
+        internal static double SolveSimply(Func func, double start, double startStep, double argumentAccuracy)
         {
             var step = startStep;
 
             var arg = start;
             var value = Math.Abs(func(arg));
 
-            while (step > argumentAccuarcy)
+            while (step > argumentAccuracy)
             {
                 var newValue = Math.Abs(func(arg + step));
                 if (newValue < value)
@@ -43,7 +43,7 @@ namespace ClothoidAndTheOthers.Mathematics
             return arg;
         }
         
-        internal static double SolveBisectional(Func func, double rangeBound1, double rangeBound2, double funcValueAccuracy)
+        internal static double SolveBisection(Func func, double rangeBound1, double rangeBound2, double funcValueAccuracy)
         {
             var l = Math.Min(rangeBound1, rangeBound2);
             var r = Math.Max(rangeBound1, rangeBound2);
@@ -71,7 +71,7 @@ namespace ClothoidAndTheOthers.Mathematics
                 var mValue = func(m);
 
                 if (double.IsNaN(mValue))
-                    throw new ArgumentException(string.Format("Function must be defined at all range (is NaN at {0})", m));
+                    throw new ArgumentException($"Function must be defined at all range (is NaN at {m})");
 
                 if (Math.Abs(mValue) <= funcValueAccuracy)
                     return m;
@@ -103,6 +103,8 @@ namespace ClothoidAndTheOthers.Mathematics
 
         public static double SolveNewton(Func func, double searchStartBound, double otherBound, double funcValueAccuracy)
         {
+            const double StartRelativeDelta = 1e-6;
+
             if (funcValueAccuracy <= 0)
                 throw new ArgumentException("funcValueAccuracy must be greater then zero");
             
@@ -121,7 +123,7 @@ namespace ClothoidAndTheOthers.Mathematics
             if (Math.Abs(otherBoundValue) <= funcValueAccuracy)
                 return otherBound;
 
-            var delta = 1e-6*Math.Sign(otherBound - searchStartBound); // (otherBound - searchStartBound) / 100000;
+            var delta = StartRelativeDelta * Math.Sign(otherBound - searchStartBound);
             
             var x = searchStartBound;
             var value = startValue;
@@ -133,16 +135,16 @@ namespace ClothoidAndTheOthers.Mathematics
                 
                 var offsetValue = func(x + delta);
                 
-                // it would be nice if to check here for offsetValue == value
+                //todo check if offsetValue equals the value
 
                 while (offsetValue*value < 0)
                 {
                     if (delta == 0)
                         return x;
 
-                    var chrodZeroX = -(x * offsetValue - value * (x + delta)) / (-offsetValue + value);
+                    var chordZeroX = -(x * offsetValue - value * (x + delta)) / (-offsetValue + value);
 
-                    delta = (chrodZeroX - x) /2;
+                    delta = (chordZeroX - x) /2;
                     
                     offsetValue = func(x + delta);
                 }
@@ -158,11 +160,11 @@ namespace ClothoidAndTheOthers.Mathematics
             //http://deadline.3x.ro/brent_method.html
             //http://www.codeproject.com/KB/recipes/RootFinding.aspx?msg=3470182&display=Mobile
             
-            const int maxIterations = 50;
+            const int MaxIterations = 50;
 
             if (tolerance <= 0.0)
             {
-                string msg = string.Format("Tolerance must be positive. Recieved {0}.", tolerance);
+                string msg = $"Tolerance must be positive. Received {tolerance}.";
                 throw new ArgumentOutOfRangeException(msg);
             }
 
@@ -240,7 +242,7 @@ namespace ClothoidAndTheOthers.Mathematics
                     b += tol;
                 else
                     b -= tol;
-                if (iterationsUsed == maxIterations)
+                if (iterationsUsed == MaxIterations)
                     return b;
 
                 fb = f(b);

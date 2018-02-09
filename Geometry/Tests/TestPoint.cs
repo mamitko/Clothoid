@@ -1,11 +1,13 @@
 using System;
 using NUnit.Framework;
 
-namespace ClothoidAndTheOthers.Geometry.Tests
+namespace Clothoid.Geometry.Tests
 {
     [TestFixture]
     public class TestPoint
     {
+        private const double Tol = Point.Eps;
+
         [Test]
         public void TestRotate()
         {
@@ -23,8 +25,7 @@ namespace ClothoidAndTheOthers.Geometry.Tests
 
             var a2 = (pt2_2 - pt1_2).Unit.ToAngle();
 
-            Assert.AreEqual(a1, a2, 1e-12);
+            Assert.AreEqual(a1, a2, Tol);
         }
-        
     }
 }

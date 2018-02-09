@@ -1,10 +1,12 @@
 ﻿using NUnit.Framework;
 
-namespace ClothoidAndTheOthers.Geometry.Tests
+namespace Clothoid.Geometry.Tests
 {
     [TestFixture]
     public class TestLine
     {
+        private const double Tol = Point.Eps;
+
         [Test]
         public void TestDistance()
         {
@@ -13,10 +15,10 @@ namespace ClothoidAndTheOthers.Geometry.Tests
             
             var line = new Line(a, b);
 
-            Assert.AreEqual(0, line.DistanceTo(a), 1e-12);
-            Assert.AreEqual(0, line.DistanceTo(b), 1e-12);
+            Assert.AreEqual(0, line.DistanceTo(a), Tol);
+            Assert.AreEqual(0, line.DistanceTo(b), Tol);
 
-            Assert.IsTrue( line.DistanceTo( new Point(10, 11) ) > 0 );
+            Assert.IsTrue(line.DistanceTo(new Point(10, 11)) > 0);
             Assert.IsTrue(line.DistanceTo(new Point(10, 9)) < 0);
         }
 
@@ -30,11 +32,11 @@ namespace ClothoidAndTheOthers.Geometry.Tests
 
             var u = (b-a).Unit;
 
-            Assert.AreEqual(1, line.Direction*u, 1e-12);
+            Assert.AreEqual(1, line.Direction*u, Tol);
         }
 
         [Test]
-        public void TestDirctionalCtor()
+        public void TestCreationDirectional()
         {
             var pt = new Point(10, 20);
             var pt2 = new Point(-100, 200);
@@ -43,8 +45,8 @@ namespace ClothoidAndTheOthers.Geometry.Tests
 
             var line = new Line(pt, dir);
 
-            Assert.AreEqual(0, line.DistanceTo(pt), 1e-12);
-            Assert.AreEqual(0, line.DistanceTo(pt2), 1e-12);
+            Assert.AreEqual(0, line.DistanceTo(pt), Tol);
+            Assert.AreEqual(0, line.DistanceTo(pt2), Tol);
             Assert.That(line.DistanceTo(new Point(0, 0)) > 0);
         }
     }

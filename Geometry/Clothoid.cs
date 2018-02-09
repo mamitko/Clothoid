@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using ClothoidAndTheOthers.Mathematics;
+using Clothoid.Mathematics;
 
-namespace ClothoidAndTheOthers.Geometry
+namespace Clothoid.Geometry
 {
     //http://en.wikipedia.org/wiki/Euler_spiral
 
-    public struct Clothoid
+    public struct Clothoid : IEquatable<Clothoid>
     {
-        private static readonly double SqrtPi = Math.Sqrt(Math.PI);
+        private static readonly double sqrtPi = Math.Sqrt(Math.PI);
         
         private static double GetX(double curvatureRate, double length)
         {
             if (length == 0)
-                return 0; // even if curvatureRate is NaN
+                // even if curvatureRate is NaN
+                return 0; 
             
             return FresnelIntegrals.C(length*curvatureRate)/curvatureRate;
         }
@@ -22,7 +23,8 @@ namespace ClothoidAndTheOthers.Geometry
         private static double GetY(double curvatureRate, double length)
         {
             if (length == 0)
-                return 0; // even if curvatureRate is NaN
+                // even if curvatureRate is NaN
+                return 0; 
 
             return FresnelIntegrals.S(length * Math.Abs(curvatureRate)) / curvatureRate;
         }
@@ -45,16 +47,18 @@ namespace ClothoidAndTheOthers.Geometry
         private static double GetAngle(double curvatureRate, double length)
         {
             if (length == 0)
-                return 0; // even if curvatureRate is NaN
+                // even if curvatureRate is NaN
+                return 0;
             
-            return (curvatureRate * length) * (Math.Abs(curvatureRate) * length); 
+            return curvatureRate * Math.Abs(curvatureRate) * length * length; 
             // Math.Abs(...) stands instead of "* Sign(...)"
         }
 
         private static UnitVector GetTangent(double curvatureRate, double length)
         {
             if (length == 0)
-                return new UnitVector(1, 0); // even if curvatureRate is NaN
+                // even if curvatureRate is NaN
+                return new UnitVector(1, 0);
 
             var angle = GetAngle(curvatureRate, length);
 
@@ -90,7 +94,7 @@ namespace ClothoidAndTheOthers.Geometry
         public static Point GetCurvatureCenter(double curvatureRate, double length)
         {
             if (double.IsNaN(curvatureRate))
-                throw new ArgumentException("curvatureRate can not be NaN");
+                throw new ArgumentException("curvatureRate can't be NaN");
 
             return GetPoint(curvatureRate, length) + GetNormal(curvatureRate, length) * GetRadius(curvatureRate, length);
         }
@@ -112,9 +116,8 @@ namespace ClothoidAndTheOthers.Geometry
             return 1/(2*curvatureRate*curvatureRate*radius)*Math.Sign(curvatureRate);
         }
         
-        
         /// <summary>
-        /// Curvature rate of Clothoid, equals to 1/Sqrt(2*R*L) at each point of clothoid. 
+        /// Curvature rate of Clothoid, equals to 1/Sqrt(2*R*L) at each point of the spiral. 
         /// Negative value means that Radius is negative (clockwise) in positive Length parameter direction.
         /// </summary>
         public readonly double CurvatureRate;
@@ -137,7 +140,9 @@ namespace ClothoidAndTheOthers.Geometry
                         return h - (GetY(rate, length) + radius * Math.Cos(angle));
                     };
 
-            //return Equation.SolveBisectional(func, 0, 2 * Math.PI * radius, tol);
+            // uncomment for debug purposes, or if Bent will fail for some reason
+            // return Equation.SolveBisection(func, 0, 2 * Math.PI * radius, tol);
+
             return Equation.SolveBrent(func, 0, 2 * Math.PI * radius, tol, 0);
         }
 
@@ -169,36 +174,33 @@ namespace ClothoidAndTheOthers.Geometry
             return result;
         }
 
-        
-        public static bool FitConnectedCircle(Clothoid clothoid, Point point, out Circle circle, out double clothoidLength)
+        /// <summary>
+        /// Fits a circle at a point providing G2 connection: coincidence of Continuity+Tangency+Curvature.
+        /// <para/>The specified tolerance actually refers to clothoid parametric equation parameter value, rather than a true result spatial accuracy.
+        /// </summary>
+        public static bool FitCircle(Clothoid clothoid, Point point, double tol, out Circle circle, out double clothoidLength)
         {
-            const double tol = 1e-12;
-
             circle = new Circle(Point.NaP, double.NaN);
             clothoidLength = double.NaN;
 
             if (double.IsNaN(clothoid.CurvatureRate))
-            {
                 return false;
-            }
 
             var newXAxis = new Line(clothoid.Origin, clothoid.OriginDirection);
-            var vx = newXAxis.GetProjectction(point) - clothoid.Origin;
+            var vx = newXAxis.GetProjection(point) - clothoid.Origin;
             var pt = new Point(vx.Length * Math.Sign(vx * newXAxis.Direction), newXAxis.DistanceTo(point));
 
-            if ((pt.X * pt.Y) * clothoid.CurvatureRate <= 0.0)
-            {
+            if (pt.X * pt.Y * clothoid.CurvatureRate <= 0.0)
                 return false;
-            }
 
             Equation.Func func = length => Math.Abs(GetRadius(clothoid.CurvatureRate, length)) -
                                            (GetCurvatureCenter(clothoid.CurvatureRate, length) - pt).Length;
 
             var sign = Math.Sign(clothoid.CurvatureRate*pt.Y);
-            var boundL = SqrtPi/Math.Abs(clothoid.CurvatureRate)*sign;
+            var boundL = sqrtPi/Math.Abs(clothoid.CurvatureRate)*sign;
 
-            clothoidLength = Equation.SolveBisectional(func, 0 + 1e-12 * sign, boundL - 1e-12*sign, tol);
-            // Brent method does not work bacause func changes it's 2nd derivative sign
+            clothoidLength = Equation.SolveBisection(func, 0 + tol * sign, boundL - tol*sign, tol);
+            // Brent method does not work since the func changes it's 2nd derivative sign
 
             if (double.IsNaN(clothoidLength))
                 return false;
@@ -209,8 +211,7 @@ namespace ClothoidAndTheOthers.Geometry
             circle = new Circle(c, r);
             return true;
         }
-
-
+        
         public static double CalcTargetDistance(double radius, double arcLength)
         {
             var rate = GetCurvatureRate(arcLength, radius);
@@ -239,7 +240,7 @@ namespace ClothoidAndTheOthers.Geometry
         }
 
         /// <summary>
-        /// Returnes less then zero if line and circle are intersecting, grater then zero if connecting clothoid is too long (turne angle > Pi)
+        /// Returns less then zero if line and circle are intersecting, grater then zero if connecting clothoid is too long (turne angle > Pi)
         /// </summary>
         public static int Connect(Line line, Circle circle, bool fromLineToCircle, double tol, out Clothoid clothoid)
         {
@@ -284,7 +285,7 @@ namespace ClothoidAndTheOthers.Geometry
         }
 
         /// <summary>
-        /// Returnes less then zero if circles are intersecting, grater then zero if connecting clothoid is too long (turne angle > Pi)
+        /// Returns less then zero if circles are intersecting, grater then zero if connecting clothoid is too long (turne angle > Pi)
         /// </summary>
         public static int Connect(Circle startCircle, Circle endCircle, double tol, out Clothoid clothoid)
         {
@@ -339,20 +340,18 @@ namespace ClothoidAndTheOthers.Geometry
             return 0;
         }
 
-        public Clothoid(double curvaturerate, Point origin, UnitVector originDirection, double startLength, double endLength)
+        public Clothoid(double curvatureRate, Point origin, UnitVector originDirection, double startLength, double endLength)
         {
-            CurvatureRate = curvaturerate;
+            CurvatureRate = curvatureRate;
             Origin = origin;
             OriginDirection = originDirection;
             StartLength = startLength;
             EndLength = endLength;
         }
 
-
-
         public Point GetPoint(double length)
         {
-            return (GetPoint(CurvatureRate, length)).Rotate(OriginDirection) + (Vector)Origin;
+            return GetPoint(CurvatureRate, length).Rotate(OriginDirection) + (Vector)Origin;
         }
 
         public UnitVector GetTangent(double length)
@@ -370,60 +369,23 @@ namespace ClothoidAndTheOthers.Geometry
             return GetLength(CurvatureRate, radius);
         }
 
-        public Point StartPoint
-        {
-            get
-            {
-                return GetPoint(StartLength);
-            }
-        }
+        public Point StartPoint => GetPoint(StartLength);
 
-        public Point EndPoint
-        {
-            get
-            {
-                return GetPoint(EndLength);
-            }
-        }
+        public Point EndPoint => GetPoint(EndLength);
 
-        public double StartRadius
-        {
-            get { return GetRadius(CurvatureRate, StartLength); }
-        }
+        public double StartRadius => GetRadius(CurvatureRate, StartLength);
 
-        public double EndRadius
-        {
-            get { return GetRadius(CurvatureRate, EndLength); }
-        }
+        public double EndRadius => GetRadius(CurvatureRate, EndLength);
 
+        public double Length => EndLength - StartLength;
 
-        public double Length
-        {
-            get
-            {
-                return EndLength - StartLength;
-            }
-        }
+        public UnitVector EndTangent => GetTangent(EndLength);
 
-        public UnitVector EndTangent
-        {
-            get
-            {
-                return GetTangent(EndLength);
-            }
-        }
-
-        public UnitVector StartTangent
-        {
-            get
-            {
-                return GetTangent(StartLength);
-            }
-        }
+        public UnitVector StartTangent => GetTangent(StartLength);
 
         public bool Intersect(Line line, out Point point)
         {
-            const double tol = 1e-12;
+            const double Tol = Point.Eps;
             
             var leftLength = Math.Min(StartLength, EndLength);
             var rightLength = Math.Max(StartLength, EndLength);
@@ -445,7 +407,7 @@ namespace ClothoidAndTheOthers.Geometry
                 var middlePoint = GetPoint(middleLength);
                 var middleD = line.DistanceTo(middlePoint);
 
-                if (Math.Abs(middleD) <= tol || Math.Abs(middleLength - prevMiddleLength) < tol)
+                if (Math.Abs(middleD) <= Tol || Math.Abs(middleLength - prevMiddleLength) < Tol)
                 {
                     point = middlePoint;
                     return true;
@@ -479,10 +441,9 @@ namespace ClothoidAndTheOthers.Geometry
             do
             {
                 yield return GetPoint(l);
-                
                 l = l + step;
-
-            } while (l < endL);
+            }
+            while (l < endL);
 
             if (endPointGuaranteed)
                 yield return GetPoint(endL);
@@ -491,26 +452,25 @@ namespace ClothoidAndTheOthers.Geometry
         #region Equality
         public bool Equals(Clothoid other)
         {
-            return other.CurvatureRate.Equals(CurvatureRate) && other.Origin.Equals(Origin) && other.OriginDirection.Equals(OriginDirection) && other.StartLength.Equals(StartLength) && other.EndLength.Equals(EndLength);
+            return CurvatureRate.Equals(other.CurvatureRate) && Origin.Equals(other.Origin) && OriginDirection.Equals(other.OriginDirection) && StartLength.Equals(other.StartLength) && EndLength.Equals(other.EndLength);
         }
 
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
-            if (obj.GetType() != typeof(Clothoid)) return false;
-            return Equals((Clothoid)obj);
+            return obj is Clothoid && Equals((Clothoid) obj);
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                int result = CurvatureRate.GetHashCode();
-                result = (result * 397) ^ Origin.GetHashCode();
-                result = (result * 397) ^ OriginDirection.GetHashCode();
-                result = (result * 397) ^ StartLength.GetHashCode();
-                result = (result * 397) ^ EndLength.GetHashCode();
-                return result;
+                var hashCode = CurvatureRate.GetHashCode();
+                hashCode = (hashCode * 397) ^ Origin.GetHashCode();
+                hashCode = (hashCode * 397) ^ OriginDirection.GetHashCode();
+                hashCode = (hashCode * 397) ^ StartLength.GetHashCode();
+                hashCode = (hashCode * 397) ^ EndLength.GetHashCode();
+                return hashCode;
             }
         } 
         #endregion

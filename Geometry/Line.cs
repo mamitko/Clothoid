@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ClothoidAndTheOthers.Geometry
+namespace Clothoid.Geometry
 {
     public struct Line
     {
@@ -8,7 +8,6 @@ namespace ClothoidAndTheOthers.Geometry
         public readonly double B;
         public readonly double P;
         
-
         public Line(double a, double b, double p)
         {
             A = a;
@@ -18,8 +17,9 @@ namespace ClothoidAndTheOthers.Geometry
 
         public Line(Point start, Point end)
         {
+            // todo looks like it's not OK to check with such a tiny epsilon
             if ((end - start).Length < double.Epsilon)
-                throw new GeometryException("Точки слишком близко или совпадают");
+                throw new GeometryException("The points are too close, or coincide.");
             
             var normal = (end - start).Normal;
             
@@ -39,24 +39,12 @@ namespace ClothoidAndTheOthers.Geometry
             P = A*point.X + B*point.Y;
         }
 
-        public UnitVector Direction
-        {
-            get
-            {
-                return new UnitVector(B, -A);
-            }
-        }
+        public UnitVector Direction => new UnitVector(B, -A);
 
-        public UnitVector Normal
-        {
-            get { return new UnitVector(A, B); }
-        }
+        public UnitVector Normal => new UnitVector(A, B);
 
-        public Line Reversed
-        {
-            get { return new Line(-A, -B, -P); }
-        }
-        
+        public Line Reversed => new Line(-A, -B, -P);
+
         public double DistanceTo(Point point)
         {
             return A*point.X + B*point.Y - P;
@@ -67,49 +55,43 @@ namespace ClothoidAndTheOthers.Geometry
             return Math.Abs(DistanceTo(point));
         }
 
-        public Line Move(Vector vector)
+        public Line Translate(Vector vector)
         {
             return new Line(A, B, P + A * vector.X + B * vector.Y);
         }
 
-        public Line Move(double shift)
+        public Line Translate(double shift)
         {
             return new Line(A, B, P + shift);
         }
 
-        public Point Intersect(Line other)
-        {
-            Point result;
-            if (!Intersect(other, out result))
-                throw new StraightsAreParallelException();
-
-            return result;
-        }
-        
         public bool Intersect(Line other, out Point point)
         {
             var shift = new Vector(A*P, B*P) + new Vector(1, 1);
-            
-            var l1 = this.Move(-shift);
-            var l2 = other.Move(-shift);
+            var l1 = this.Translate(-shift);
+            var l2 = other.Translate(-shift);
 
-            var divider = (l1.A * l2.B - l1.B * l2.A);
+            var divider = l1.A * l2.B - l1.B * l2.A;
 
-            if (Math.Abs(divider) <= 1e-12)
+            if (Math.Abs(divider) <= Point.Eps)
             {
                 point = Point.NaP;
                 return false;
             }
 
             point = new Point(
-                -(l1.B * l2.P - l1.P * l2.B) / divider,
-                (l1.A * l2.P - l2.A * l1.P) / divider) + shift;
+                        x: -(l1.B * l2.P - l1.P * l2.B) / divider + shift.X,
+                        y: (l1.A * l2.P - l2.A * l1.P) / divider + shift.Y);
+
             return true;
         }
 
-        public Point GetProjectction(Point point)
+        public Point GetProjection(Point point)
         {
-            return Intersect(new Line(point, Normal));
+            var projectile = new Line(point, Normal);
+
+            Point projection;
+            return Intersect(projectile, out projection) ? projection : Point.NaP;
         }
     }
 }

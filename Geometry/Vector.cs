@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ClothoidAndTheOthers.Geometry
+namespace Clothoid.Geometry
 {
     public struct Vector
     {
@@ -14,7 +14,7 @@ namespace ClothoidAndTheOthers.Geometry
         }
 
         /// <summary>
-        /// Ориентированная площадь параллелограмма
+        /// Vector product for a 2D case (equals to oriented square of parallelogram)
         /// </summary>
         public static double operator ^(Vector v1, Vector v2)
         {
@@ -51,10 +51,9 @@ namespace ClothoidAndTheOthers.Geometry
             return new Vector(v1.X - v2.X, v1.Y - v2.Y);
         }
 
-        public Vector Reversed
-        {
-            get { return new Vector(-X, -Y);}
-        }
+        public static Vector Zero { get; } = new Vector(0, 0);
+
+        public Vector Reversed => new Vector(-X, -Y);
 
         public readonly double X;
         
@@ -76,21 +75,9 @@ namespace ClothoidAndTheOthers.Geometry
         {
         }
 
-        public UnitVector Normal
-        {
-            get
-            {
-                return new Vector(-Y, X).Unit;
-            }
-        }
+        public UnitVector Normal => new Vector(-Y, X).Unit;
 
-        public double Length
-        {
-            get
-            {
-                return Math.Sqrt(X*X + Y*Y);
-            }
-        }
+        public double Length => Math.Sqrt(X*X + Y*Y);
 
         public UnitVector Unit
         {
@@ -130,20 +117,17 @@ namespace ClothoidAndTheOthers.Geometry
 
                 if (x == 0.0)
                     return y * y;
+
                 if (y == 0.0)
                     return x * x;
+
                 if (x > y)
                     return x * x * (1.0 + (y / x) * (y / x));
 
                 return y * y * (1.0 + (x / y) * (x / y));
             }
         }
-
-        public static Vector Zero
-        {
-            get { return new Vector(0, 0); }
-        }
-
+        
         public Vector Rotate(UnitVector angle)
         {
             return new Vector( 
@@ -153,7 +137,7 @@ namespace ClothoidAndTheOthers.Geometry
 
         public override string ToString()
         {
-            return "{" + X + "; " + Y + "}";
+            return $"{{{X}; {Y}}}";
         }
     }
 }

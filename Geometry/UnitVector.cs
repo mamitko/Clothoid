@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
-namespace ClothoidAndTheOthers.Geometry
+namespace Clothoid.Geometry
 {
     public struct UnitVector : IEquatable<UnitVector>
     {
+        private const double Eps = 1e-15;
+
         public static UnitVector operator - (UnitVector u)
         {
             return new UnitVector(-u.X, -u.Y);
@@ -11,7 +14,7 @@ namespace ClothoidAndTheOthers.Geometry
 
         public static double operator ^(UnitVector v1, UnitVector v2)
         {
-            return v1.X * v2.Y - v1.Y * v2.X;
+            return v1.X*v2.Y - v1.Y*v2.X;
         }
         
         public static Vector operator * (UnitVector u, double d)
@@ -54,25 +57,16 @@ namespace ClothoidAndTheOthers.Geometry
 
         public UnitVector(double x, double y)
         {
-            if (Math.Abs(x * x + y * y - 1) > 1e-5)
+            if (Math.Abs(x * x + y * y - 1) > Eps)
                 throw new ArgumentException();
 
             X = x;
             Y = y;
         }
 
-        public UnitVector Normal
-        {
-            get
-            {
-                return new Vector(-Y, X).Unit;
-            }
-        }
+        public UnitVector Normal => new Vector(-Y, X).Unit;
 
-        public bool IsValid
-        {
-            get { return Math.Abs(1 - (X*X + Y*Y)) < 1e-15; }
-        }
+        public bool IsValid => Math.Abs(1 - (X*X + Y*Y)) < Eps;
 
         public UnitVector Rotate(double angle)
         {
@@ -88,11 +82,13 @@ namespace ClothoidAndTheOthers.Geometry
         
         public static UnitVector GetAngle(Vector start, Vector end)
         {
-            var cos = (start*end)/(start.Length*end.Length);
+            var cos = start * end / (start.Length * end.Length);
 
             if (cos >= 1)
-                // could be a little (at ~1e-15) greate then 1 deu to floating point numbers precision
+            {
+                Debug.Assert(Math.Abs(cos - 1) < Eps);
                 return new UnitVector(1, 0);
+            }
 
             var sin = Math.Sqrt(1 - cos*cos)*Math.Sign(start ^ end);
             return new UnitVector(cos, sin);
@@ -100,7 +96,7 @@ namespace ClothoidAndTheOthers.Geometry
 
         public static UnitVector GetAngle(UnitVector start, UnitVector end)
         {
-            var cos = (start * end);
+            var cos = start * end;
             var sin = Math.Sqrt(Math.Abs(1 - cos * cos)) * Math.Sign(start ^ end);
             return new UnitVector(cos, sin);
         }
@@ -158,7 +154,7 @@ namespace ClothoidAndTheOthers.Geometry
 
         public override string ToString()
         {
-            return "{" + X + "; " + Y + "}";
+            return $"{{{X}; {Y}}}";
         }
     }
 }

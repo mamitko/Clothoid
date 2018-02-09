@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ClothoidAndTheOthers.Mathematics
+namespace Clothoid.Mathematics
 {
     public class NumericalMethodException: ApplicationException
     {

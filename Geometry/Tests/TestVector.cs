@@ -1,15 +1,17 @@
 ﻿using System;
 using NUnit.Framework;
 
-namespace ClothoidAndTheOthers.Geometry.Tests
+namespace Clothoid.Geometry.Tests
 {
     [TestFixture]
     public class TestVector
     {
+        private const double Tol = Point.Eps;
+
         private static void AssertAreEqual(Vector v1, Vector v2)
         {
-            Assert.AreEqual(v1.X, v2.X, 1e-12);
-            Assert.AreEqual(v1.Y, v2.Y, 1e-12);
+            Assert.AreEqual(v1.X, v2.X, Tol);
+            Assert.AreEqual(v1.Y, v2.Y, Tol);
         }
         
         [Test]

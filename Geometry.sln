@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClothoidAndTheOthers", "ClothoidAndTheOthers.csproj", "{3EF9CAB0-2C90-4287-A583-E50920D4D89C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clothoid", "Clothoid.csproj", "{3EF9CAB0-2C90-4287-A583-E50920D4D89C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +18,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {00563403-4680-4A9F-96C6-C5E05078B83B}
 	EndGlobalSection
 EndGlobal
